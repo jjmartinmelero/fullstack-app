@@ -10,7 +10,6 @@ import (
 )
 
 var DB = func() *gorm.DB {
-	// domain server name
 
 	// load environment variables
 	errLoadEnvironmentVariables := godotenv.Load()
@@ -20,9 +19,12 @@ var DB = func() *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 
-	if db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
 		panic("failed to connect database")
 	}
+
 	fmt.Println("Connected to database")
+
 	return db
-}
+}()

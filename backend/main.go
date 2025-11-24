@@ -2,16 +2,22 @@ package main
 
 import (
 	"backend-fullstack-app/handlers"
+	"backend-fullstack-app/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Run database migrations
+	models.Migration()
 
 	gin.SetMode(gin.DebugMode)
 
 	router := gin.Default()
+
+	// exec migrations
+	models.Migration()
 
 	// static files
 	router.Static("/public", "./public")
