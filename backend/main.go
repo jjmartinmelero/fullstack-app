@@ -24,6 +24,8 @@ func main() {
 		})
 	})
 
+	// 69u94J1AIc
+
 	// path not found
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
