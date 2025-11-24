@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend-fullstack-app/handlers"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,25 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 
 	router := gin.Default()
+
+	// static files
+	router.Static("/public", "./public")
+
+	// home path
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Welcome to the API",
+		})
+	})
+
+	// path not found
+	router.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "ERROR",
+			"message": "Path not found",
+		})
+	})
 
 	var prefix = "/api/v1/"
 	// routes
