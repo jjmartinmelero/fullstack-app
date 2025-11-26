@@ -9,7 +9,7 @@
 
 *Una aplicación fullstack moderna con API RESTful en Go y frontend interactivo*
 
-[Demo](#) • [Documentación](#-documentación) • [Reportar Bug](../../issues) • [Solicitar Feature](../../issues)
+[Documentación](#-documentación) • [Reportar Bug](../../issues) • [Solicitar Feature](../../issues)
 
 </div>
 
@@ -21,9 +21,8 @@
 - [Stack Tecnológico](#️-stack-tecnológico)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Inicio Rápido](#-inicio-rápido)
-- [Documentación](#-documentación)
-  - [Backend](#-backend-api)
-  - [Frontend](#-frontend-coming-soon)
+- [Documentación de la API](#-documentación-de-la-api)
+- [Modelos de Datos](#-modelos-de-datos)
 - [Desarrollo](#-desarrollo)
 - [Características](#-características)
 - [Roadmap](#-roadmap)
@@ -39,13 +38,13 @@ Esta es una aplicación fullstack completa que incluye:
 
 - **Backend API RESTful** construida con Go y Gin Framework
 - **Base de datos MySQL** con ORM GORM
-- **Frontend moderno** *(próximamente)*
+- **Sistema de gestión de categorías y recetas**
 - **Arquitectura escalable** y mantenible
 - **Hot reload** para desarrollo ágil
 
 ### ¿Qué hace esta aplicación?
 
-Proporciona una base sólida para aplicaciones web modernas con operaciones CRUD completas, autenticación, gestión de archivos y más.
+Proporciona una plataforma para gestionar categorías, recetas y contactos con operaciones CRUD completas, generación automática de slugs, validación de datos y relaciones entre modelos.
 
 ---
 
@@ -84,6 +83,7 @@ Proporciona una base sólida para aplicaciones web modernas con operaciones CRUD
 - **Base de Datos:** MySQL 8.0
 - **Hot Reload:** Air
 - **Gestión de Env:** GoDotEnv
+- **Slug Generation:** GoSimple/Slug
 
 ### Frontend
 > 🚧 **Coming Soon** - Se documentará cuando esté implementado
@@ -98,19 +98,19 @@ fullstack-app/
 │   ├── 📂 database/            # Configuración de base de datos
 │   │   └── database.go         # Conexión GORM a MySQL
 │   ├── 📂 dto/                 # Data Transfer Objects
-│   │   └── dto.go              # Estructuras de validación
+│   │   ├── category.go         # DTO para categorías
+│   │   └── dto.go              # DTOs generales
 │   ├── 📂 handlers/            # Controladores HTTP
-│   │   └── example.go          # Handlers de ejemplo
+│   │   └── Categories.go       # CRUD de categorías
+│   ├── 📂 models/              # Modelos de datos
+│   │   └── models.go           # Category, Recipe, Contact
 │   ├── 📂 public/              # Archivos estáticos
-│   │   └── uploads/images/     # Imágenes subidas
 │   ├── 📂 tmp/                 # Temporales de Air
 │   ├── 📄 .air.toml            # Configuración hot reload
 │   ├── 📄 .env                 # Variables de entorno (local)
 │   ├── 📄 go.mod               # Dependencias Go
 │   ├── 📄 go.sum               # Checksums
-│   ├── 📄 main.go              # Punto de entrada
-│   └── 📄 README.md            # Documentación backend
-├── 📂 frontend/                # Aplicación frontend (próximamente)
+│   └── 📄 main.go              # Punto de entrada
 ├── 📄 .gitignore               # Archivos ignorados por Git
 ├── 📄 LICENSE                  # Licencia MIT
 └── 📄 README.md                # Este archivo
@@ -175,73 +175,178 @@ go run main.go
 
 El servidor estará disponible en: **http://localhost:1024**
 
-#### 4️⃣ Configurar Frontend
-> 🚧 **Próximamente** - Se agregará cuando el frontend esté implementado
+Las migraciones de base de datos se ejecutan automáticamente al iniciar la aplicación.
 
 ---
 
-## 📚 Documentación
+## 📚 Documentación de la API
 
-### 🔧 Backend API
+### 🔧 Endpoints Disponibles
 
-#### Endpoints Disponibles
+**Base URL:** `http://localhost:1024`
 
-**Base URL:** `http://localhost:1024/api/v1/`
+#### Endpoints Generales
 
 | Método | Endpoint | Descripción | Body |
 |--------|----------|-------------|------|
 | `GET` | `/` | Mensaje de bienvenida | - |
-| `GET` | `/api/v1/example` | Obtener ejemplo | - |
-| `GET` | `/api/v1/example/:id` | Obtener por ID | - |
-| `POST` | `/api/v1/example` | Crear ejemplo | `{email, password}` |
-| `PUT` | `/api/v1/example/:id` | Actualizar por ID | - |
-| `DELETE` | `/api/v1/example/:id` | Eliminar por ID | - |
-| `GET` | `/api/v1/example/querystring` | Query params | `?id=123` |
-| `POST` | `/api/v1/example/upload` | Subir imagen | `multipart/form-data` |
+| `GET` | `/public/*` | Archivos estáticos | - |
 
-#### Ejemplo de Uso
+#### Endpoints de Categorías
 
-**GET - Obtener ejemplo:**
+**Base URL:** `http://localhost:1024/api/v1/categories`
+
+| Método | Endpoint | Descripción | Body | Response |
+|--------|----------|-------------|------|----------|
+| `GET` | `/api/v1/categories` | Listar todas las categorías | - | `200 OK` |
+| `GET` | `/api/v1/categories/:id` | Obtener categoría por ID | - | `200 OK` / `404 Not Found` |
+| `POST` | `/api/v1/categories` | Crear nueva categoría | `{name}` | `201 Created` / `409 Conflict` |
+| `PUT` | `/api/v1/categories/:id` | Actualizar categoría | `{name}` | `200 OK` / `404 Not Found` |
+| `DELETE` | `/api/v1/categories/:id` | Eliminar categoría | - | `200 OK` / `404 Not Found` |
+
+### 📝 Ejemplos de Uso
+
+#### GET - Listar todas las categorías
+
 ```bash
-curl http://localhost:1024/api/v1/example
+curl http://localhost:1024/api/v1/categories
 ```
 
-**POST - Crear ejemplo:**
-```bash
-curl -X POST http://localhost:1024/api/v1/example \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@ejemplo.com",
-    "password": "contraseña123"
-  }'
-```
-
-**POST - Subir imagen:**
-```bash
-curl -X POST http://localhost:1024/api/v1/example/upload \
-  -F "photo=@/ruta/a/imagen.jpg"
-```
-
-#### Respuestas de la API
-
-**Éxito (200/201):**
+**Respuesta:**
 ```json
 {
   "status": "OK",
-  "message": "Operación exitosa",
-  "data": { }
+  "message": "Categories retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "name": "Postres",
+      "slug": "postres"
+    },
+    {
+      "id": 2,
+      "name": "Platos Principales",
+      "slug": "platos-principales"
+    }
+  ]
 }
 ```
 
-**Error (400/404/422):**
+#### GET - Obtener categoría por ID
+
+```bash
+curl http://localhost:1024/api/v1/categories/1
+```
+
+**Respuesta:**
+```json
+{
+  "status": "OK",
+  "message": "Category retrieved successfully",
+  "data": {
+    "id": 1,
+    "name": "Postres",
+    "slug": "postres"
+  }
+}
+```
+
+#### POST - Crear nueva categoría
+
+```bash
+curl -X POST http://localhost:1024/api/v1/categories \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ensaladas"
+  }'
+```
+
+**Respuesta:**
+```json
+{
+  "status": "OK",
+  "message": "Category created successfully",
+  "data": {
+    "id": 3,
+    "name": "Ensaladas",
+    "slug": "ensaladas"
+  }
+}
+```
+
+> **Nota:** El slug se genera automáticamente a partir del nombre
+
+#### PUT - Actualizar categoría
+
+```bash
+curl -X PUT http://localhost:1024/api/v1/categories/3 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ensaladas Frescas"
+  }'
+```
+
+**Respuesta:**
+```json
+{
+  "status": "OK",
+  "message": "Category updated successfully",
+  "data": {
+    "id": 3,
+    "name": "Ensaladas Frescas",
+    "slug": "ensaladas-frescas"
+  }
+}
+```
+
+#### DELETE - Eliminar categoría
+
+```bash
+curl -X DELETE http://localhost:1024/api/v1/categories/3
+```
+
+**Respuesta:**
+```json
+{
+  "status": "OK",
+  "message": "Category deleted successfully",
+  "data": {
+    "id": 3,
+    "name": "Ensaladas Frescas",
+    "slug": "ensaladas-frescas"
+  }
+}
+```
+
+### 🔴 Respuestas de Error
+
+**Error 400 - Bad Request:**
 ```json
 {
   "status": "ERROR",
-  "message": "Descripción del error"
+  "message": "Invalid request body",
+  "err": "Key: 'CategoryDto.Name' Error:Field validation for 'Name' failed on the 'required' tag"
 }
 ```
 
-#### Arquitectura Backend
+**Error 404 - Not Found:**
+```json
+{
+  "status": "ERROR",
+  "message": "Category not found",
+  "err": "record not found"
+}
+```
+
+**Error 409 - Conflict:**
+```json
+{
+  "status": "ERROR",
+  "message": "Category already exists"
+}
+```
+
+### 🏗️ Arquitectura Backend
 
 ```mermaid
 graph TB
@@ -251,47 +356,124 @@ graph TB
     
     subgraph "Backend - Go/Gin"
         B[Router main.go]
-        C[Handlers Layer]
+        C[Handlers]
         D[DTO Validation]
-        E[Database Layer]
+        E[Models Layer]
+        F[Database Layer]
     end
     
     subgraph "Persistencia"
-        F[(MySQL Database)]
-        G[Static Files]
+        G[(MySQL Database)]
+        H[Static Files]
     end
     
     A --> B
     B --> C
     C --> D
-    C --> E
+    D --> E
     E --> F
-    B --> G
+    F --> G
+    B --> H
     
     style A fill:#e1f5ff
     style B fill:#fff4e1
     style C fill:#e8f5e9
     style D fill:#f3e5f5
     style E fill:#fce4ec
-    style F fill:#ffcdd2
-    style G fill:#e0f2f1
+    style F fill:#ffe0b2
+    style G fill:#ffcdd2
+    style H fill:#e0f2f1
 ```
-
-**📖 [Ver documentación completa del Backend](backend/README.md)**
 
 ---
 
-### 🎨 Frontend *(Coming Soon)*
+## 🗄️ Modelos de Datos
 
-> 🚧 **En desarrollo** - La documentación del frontend se agregará próximamente.
+### Category (Categoría)
 
-#### Tecnologías Planificadas
+```go
+type Category struct {
+    Id   uint   `json:"id"`
+    Name string `gorm:"type:varchar(100);not null" json:"name"`
+    Slug string `gorm:"type:varchar(100)" json:"slug"`
+}
+```
 
-- Framework moderno (React/Vue/Angular)
-- Estado global
-- Estilizado moderno
-- Responsive design
-- Integración con Backend API
+**Características:**
+- ID auto-incremental
+- Nombre único requerido
+- Slug generado automáticamente
+- Validación de duplicados
+
+### Recipe (Receta)
+
+```go
+type Recipe struct {
+    Id          uint      `json:"id"`
+    CategoryId  uint      `json:"category_id"`
+    Category    Category  `gorm:"foreignKey:CategoryId" json:"category"`
+    Name        string    `gorm:"type:varchar(100);not null" json:"name"`
+    Slug        string    `gorm:"type:varchar(100)" json:"slug"`
+    Time        string    `gorm:"type:varchar(100);not null" json:"time"`
+    Photo       string    `gorm:"type:varchar(100);not null" json:"photo"`
+    Description string    `json:"description"`
+    Date        time.Time `json:"date"`
+}
+```
+
+**Características:**
+- Relación con Category (Foreign Key)
+- Campos multimedia (foto)
+- Timestamps automáticos
+- Slug auto-generado
+
+### Contact (Contacto)
+
+```go
+type Contact struct {
+    Id      uint      `json:"id"`
+    Name    string    `gorm:"type:varchar(100);not null" json:"name"`
+    Email   string    `gorm:"type:varchar(100);not null" json:"email"`
+    Phone   string    `gorm:"type:varchar(100);not null" json:"phone"`
+    Message string    `gorm:"type:text;not null" json:"message"`
+    Date    time.Time `json:"date"`
+}
+```
+
+**Características:**
+- Formulario de contacto
+- Validación de campos
+- Fecha de envío automática
+
+### Relaciones
+
+```mermaid
+erDiagram
+    CATEGORY ||--o{ RECIPE : "tiene"
+    CATEGORY {
+        uint id PK
+        string name
+        string slug
+    }
+    RECIPE {
+        uint id PK
+        uint category_id FK
+        string name
+        string slug
+        string time
+        string photo
+        string description
+        datetime date
+    }
+    CONTACT {
+        uint id PK
+        string name
+        string email
+        string phone
+        string message
+        datetime date
+    }
+```
 
 ---
 
@@ -311,24 +493,27 @@ graph TB
 
 3. **Probar endpoints:**
    ```bash
-   # Instalar herramientas de prueba
-   # Postman, Insomnia, o curl
+   # Usar Postman, Insomnia, o curl
+   curl http://localhost:1024/api/v1/categories
    ```
 
-#### Frontend Development
-> 🚧 Se documentará cuando esté disponible
+4. **Las migraciones se ejecutan automáticamente** al iniciar el servidor
 
 ### Convenciones de Código
 
 #### Backend (Go)
-- **Archivos:** `snake_case.go`
-- **Funciones:** `PascalCase` con prefijos descriptivos
+- **Archivos:** `PascalCase.go` para handlers (ej: `Categories.go`)
+- **Funciones públicas:** `PascalCase` (ej: `GetCategories`)
+- **Funciones privadas:** `camelCase`
 - **Variables:** `camelCase`
 - **Constantes:** `UPPER_SNAKE_CASE`
 - **Paquetes:** `lowercase`
+- **Handlers:** Nombres descriptivos como `GetCategories`, `CreateCategory`
 
-#### Frontend
-> 🚧 Se definirán cuando se implemente
+#### Validación
+- Uso de DTOs para validación de datos
+- Tags de validación con `binding:"required"`
+- Manejo consistente de errores
 
 ---
 
@@ -336,27 +521,30 @@ graph TB
 
 ### ✅ Implementadas
 
-- [x] API RESTful completa con operaciones CRUD
-- [x] Validación robusta de datos en requests
-- [x] Upload de archivos con gestión de imágenes
-- [x] Conexión a MySQL con GORM ORM
-- [x] Variables de entorno para configuración segura
-- [x] Hot reload con Air para desarrollo
-- [x] Arquitectura modular y escalable
-- [x] Manejo consistente de errores
-- [x] Servicio de archivos estáticos
-- [x] Documentación completa de API
+- [x] **API RESTful** completa para gestión de categorías
+- [x] **Operaciones CRUD** completas con validación
+- [x] **Generación automática de slugs** para SEO-friendly URLs
+- [x] **Validación de duplicados** para evitar categorías repetidas
+- [x] **Migraciones automáticas** con GORM AutoMigrate
+- [x] **Conexión a MySQL** con GORM ORM
+- [x] **Variables de entorno** para configuración segura
+- [x] **Hot reload** con Air para desarrollo
+- [x] **Arquitectura modular** con separación de capas
+- [x] **Manejo de errores** consistente
+- [x] **Servicio de archivos estáticos**
+- [x] **Relaciones entre modelos** (Category → Recipe)
+- [x] **Modelos preparados**: Category, Recipe, Contact
 
 ### 🚧 En Desarrollo
 
+- [ ] Endpoints para Recipes
+- [ ] Endpoints para Contacts
+- [ ] Upload de fotos para recetas
 - [ ] Frontend interactivo
 - [ ] Autenticación JWT
-- [ ] Roles y permisos
 - [ ] Tests unitarios e integración
 - [ ] Docker & Docker Compose
-- [ ] CI/CD Pipeline
 - [ ] Documentación API con Swagger
-- [ ] Rate limiting
 
 ---
 
@@ -364,24 +552,28 @@ graph TB
 
 ### Fase 1: Backend Core ✅
 - [x] Estructura del proyecto
-- [x] API RESTful básica
+- [x] API RESTful para Categories
 - [x] Conexión a base de datos
-- [x] Validación de datos
-- [x] Upload de archivos
+- [x] Validación de datos con DTOs
+- [x] Modelos de datos (Category, Recipe, Contact)
+- [x] Generación de slugs
 
 ### Fase 2: Backend Avanzado 🔄
+- [ ] API para Recipes y Contacts
+- [ ] Upload de imágenes para recetas  
+- [ ] Búsqueda y filtrado
+- [ ] Paginación
 - [ ] Sistema de autenticación (JWT)
-- [ ] Middleware de autorización
 - [ ] Tests automatizados
-- [ ] Logging avanzado
 - [ ] Documentación Swagger
 
 ### Fase 3: Frontend 📅
 - [ ] Setup del proyecto frontend
 - [ ] Diseño UI/UX
 - [ ] Integración con API
-- [ ] Estado global
-- [ ] Routing
+- [ ] Gestión de categorías
+- [ ] Gestión de recetas
+- [ ] Formulario de contacto
 
 ### Fase 4: DevOps & Deploy 📅
 - [ ] Dockerización
@@ -436,6 +628,7 @@ MIT License - Copyright (c) 2025 Juan Jesús Martín Melero
 - [Gin Web Framework](https://gin-gonic.com/)
 - [GORM](https://gorm.io/)
 - [Air - Live reload](https://github.com/air-verse/air)
+- [GoSimple/Slug](https://github.com/gosimple/slug)
 - [Go Community](https://golang.org/)
 
 ---

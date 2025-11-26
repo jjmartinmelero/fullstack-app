@@ -41,18 +41,12 @@ func main() {
 	})
 
 	var prefix = "/api/v1/"
-	// routes
-	router.GET(prefix+"/example", handlers.Example_get)
-	router.GET(prefix+"/example/:id", handlers.Example_get_with_params)
-	router.POST(prefix+"/example", handlers.Example_post)
-	router.PUT(prefix+"/example/:id", handlers.Example_put)
-	router.DELETE(prefix+"/example/:id", handlers.Example_delete)
-	router.GET(prefix+"/example/querystring", handlers.Example_querystring)
-	router.POST(prefix+"/example/upload", handlers.Example_upload)
 
-	// categories
 	router.GET(prefix+"/categories", handlers.GetCategories)
 	router.GET(prefix+"/categories/:id", handlers.GetCategoryById)
+	router.POST(prefix+"/categories", handlers.CreateCategory)
+	router.PUT(prefix+"/categories/:id", handlers.EditCategory)
+	router.DELETE(prefix+"/categories/:id", handlers.DeleteCategory)
 
 	router.Run(":1024") // listens on 0.0.0.0:8080 by default
 }
