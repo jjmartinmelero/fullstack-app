@@ -50,5 +50,9 @@ func main() {
 	router.GET(prefix+"/example/querystring", handlers.Example_querystring)
 	router.POST(prefix+"/example/upload", handlers.Example_upload)
 
+	// categories
+	router.GET(prefix+"/categories", handlers.GetCategories)
+	router.GET(prefix+"/categories/:id", handlers.GetCategoryById)
+
 	router.Run(":1024") // listens on 0.0.0.0:8080 by default
 }
