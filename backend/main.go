@@ -48,5 +48,7 @@ func main() {
 	router.PUT(prefix+"/categories/:id", handlers.EditCategory)
 	router.DELETE(prefix+"/categories/:id", handlers.DeleteCategory)
 
+	router.GET(prefix+"/recipes", handlers.GetRecipes)
+
 	router.Run(":1024") // listens on 0.0.0.0:8080 by default
 }

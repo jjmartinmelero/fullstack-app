@@ -6,7 +6,7 @@ import (
 )
 
 type Category struct {
-	Id   uint   `json:"id"`
+	Id   uint   `gorm:"primaryKey" json:"id"`
 	Name string `gorm:"type:varchar(100);not null" json:"name"`
 	Slug string `gorm:"type:varchar(100)" json:"slug"`
 }
@@ -14,9 +14,9 @@ type Category struct {
 type Categories []Category
 
 type Recipe struct {
-	Id          uint      `json:"id"`
+	Id          uint      `gorm:"primaryKey" json:"id"`
 	CategoryId  uint      `json:"category_id"`
-	Category    Category  `gorm:"foreignKey:CategoryId" json:"category"`
+	Category    Category  `gorm:"foreignKey:CategoryId;references:Id" json:"category"`
 	Name        string    `gorm:"type:varchar(100);not null" json:"name"`
 	Slug        string    `gorm:"type:varchar(100)" json:"slug"`
 	Time        string    `gorm:"type:varchar(100);not null" json:"time"`
