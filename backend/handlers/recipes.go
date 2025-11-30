@@ -23,7 +23,18 @@ func GetRecipes(c *gin.Context) {
 
 	var parseData = dto.ReceipeResponses{}
 
+	scheme := "http"
+
+	if c.Request.TLS != nil {
+		scheme = "https"
+	}
+
 	for _, element := range data {
+
+		date := fmt.Sprintf("%d-%02d-%02d", element.Date.Day(), element.Date.Month(), element.Date.Year())
+
+		photo := fmt.Sprintf("%s://%s/public/uploads/recipes/%s", scheme, c.Request.Host, element.Photo)
+
 		parseData = append(parseData, dto.ReceipeResponse{
 			ID:          element.Id,
 			Name:        element.Name,
@@ -32,8 +43,8 @@ func GetRecipes(c *gin.Context) {
 			Category:    element.Category.Name,
 			Time:        element.Time,
 			Description: element.Description,
-			Photo:       element.Photo,
-			Date:        element.Date.String(),
+			Photo:       photo,
+			Date:        date,
 		})
 	}
 
