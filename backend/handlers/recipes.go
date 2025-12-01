@@ -6,8 +6,12 @@ import (
 	"backend-fullstack-app/models"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 func GetRecipes(c *gin.Context) {
@@ -89,5 +93,56 @@ func GetRecipeById(c *gin.Context) {
 			Photo:       fmt.Sprintf("%s://%s/public/uploads/recipes/%s", scheme, c.Request.Host, data.Photo),
 			Date:        fmt.Sprintf("%d-%02d-%02d", data.Date.Day(), data.Date.Month(), data.Date.Year()),
 		},
+	})
+}
+
+func CreateRecipe(c *gin.Context) {
+	fileForm, err := c.FormFile("photo")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Failed to upload photo",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	// check mimetype
+	if fileForm.Header.Get("Content-Type") != "image/jpeg" && fileForm.Header.Get("Content-Type") != "image/png" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Invalid file type",
+			"err":     "Invalid file type",
+		})
+		return
+	}
+
+	var extension = strings.Split(fileForm.Filename, ".")[1]
+	timeParts := strings.Split(time.Now().String(), " ")
+	photo := string(timeParts[4][6:14] + "." + extension)
+
+	var file string = "public/uploads/recipes/" + photo
+
+	c.SaveUploadedFile(fileForm, file)
+
+	category_id, _ := strconv.ParseUint(c.PostForm("category_id"), 10, 64)
+
+	data := models.Recipe{
+		CategoryId:  uint(category_id),
+		Name:        c.PostForm("name"),
+		Slug:        slug.Make(c.PostForm("name")),
+		Time:        c.PostForm("time"),
+		Description: c.PostForm("description"),
+		Photo:       photo,
+		Date:        time.Now(),
+	}
+
+	database.DB.Create(&data)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  "OK",
+		"message": "Recipe created successfully",
+		"data":    data,
 	})
 }
