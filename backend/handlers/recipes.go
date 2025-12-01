@@ -54,3 +54,40 @@ func GetRecipes(c *gin.Context) {
 		"data":    parseData,
 	})
 }
+
+func GetRecipeById(c *gin.Context) {
+	id := c.Param("id")
+
+	data := models.Recipe{}
+
+	if err := database.DB.Preload("Category").First(&data, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "ERROR",
+			"message": "Recipe not found",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	scheme := "http"
+
+	if c.Request.TLS != nil {
+		scheme = "https"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "OK",
+		"message": "Recipe retrieved successfully",
+		"data": dto.ReceipeResponse{
+			ID:          data.Id,
+			Name:        data.Name,
+			Slug:        data.Slug,
+			CategoryId:  data.CategoryId,
+			Category:    data.Category.Name,
+			Time:        data.Time,
+			Description: data.Description,
+			Photo:       fmt.Sprintf("%s://%s/public/uploads/recipes/%s", scheme, c.Request.Host, data.Photo),
+			Date:        fmt.Sprintf("%d-%02d-%02d", data.Date.Day(), data.Date.Month(), data.Date.Year()),
+		},
+	})
+}
