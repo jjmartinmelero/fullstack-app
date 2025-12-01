@@ -6,6 +6,7 @@ import (
 	"backend-fullstack-app/models"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -118,6 +119,19 @@ func CreateRecipe(c *gin.Context) {
 		return
 	}
 
+	// check if recipe name exists
+	exist := models.Recipes{}
+	database.DB.Where(&models.Recipe{Name: c.PostForm("name")}).First(&exist)
+
+	if len(exist) >= 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Recipe name already exists",
+			"err":     "Recipe name already exists",
+		})
+		return
+	}
+
 	var extension = strings.Split(fileForm.Filename, ".")[1]
 	timeParts := strings.Split(time.Now().String(), " ")
 	photo := string(timeParts[4][6:14] + "." + extension)
@@ -143,6 +157,71 @@ func CreateRecipe(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  "OK",
 		"message": "Recipe created successfully",
+		"data":    data,
+	})
+}
+
+func UpdateRecipe(c *gin.Context) {
+	// get json request
+	var recipe dto.RecipeDTO
+
+	if err := c.ShouldBindJSON(&recipe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Failed to bind JSON",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	id := c.Param("id")
+
+	data := models.Recipe{}
+
+	if err := database.DB.First(&data, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "ERROR",
+			"message": "Recipe not found",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	data.Name = recipe.Name
+	data.Slug = slug.Make(recipe.Name)
+	data.CategoryId = recipe.CategoryId
+	data.Time = recipe.Time
+	data.Description = recipe.Description
+
+	database.DB.Save(&data)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "OK",
+		"message": "Recipe updated successfully",
+		"data":    data,
+	})
+}
+
+func DeleteRecipe(c *gin.Context) {
+	id := c.Param("id")
+
+	data := models.Recipe{}
+
+	if err := database.DB.First(&data, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "ERROR",
+			"message": "Recipe not found",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	database.DB.Delete(&data)
+	os.Remove("public/uploads/recipes/" + data.Photo)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "OK",
+		"message": "Recipe deleted successfully",
 		"data":    data,
 	})
 }
